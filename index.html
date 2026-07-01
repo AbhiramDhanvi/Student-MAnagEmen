@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Student Management System — Pro Dashboard</title>
+
+<!-- React, ReactDOM, PropTypes (Recharts needs it), Recharts, Babel : all via CDN -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/prop-types@15/prop-types.min.js"></script>
+<script crossorigin src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/umd/Recharts.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    --indigo: #6366f1;
+    --violet: #8b5cf6;
+    --pink: #ec4899;
+    --cyan: #06b6d4;
+    --emerald: #10b981;
+    --amber: #f59e0b;
+    --rose: #f43f5e;
+    --ink: #0f172a;
+    --slate: #475569;
+    --slate-light: #94a3b8;
+    --line: rgba(148,163,184,0.22);
+    --glass: rgba(255,255,255,0.72);
+    --glass-strong: rgba(255,255,255,0.9);
+    --shadow: 0 18px 50px -12px rgba(30,27,75,0.35);
+    --radius: 18px;
+    --font: 'Inter', system-ui, sans-serif;
+    --display: 'Space Grotesk', 'Inter', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    color: var(--ink);
+    min-height: 100vh;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(139,92,246,0.55), transparent 60%),
+      radial-gradient(1000px 500px at 110% 10%, rgba(236,72,153,0.45), transparent 55%),
+      radial-gradient(900px 600px at 50% 120%, rgba(6,182,212,0.40), transparent 55%),
+      linear-gradient(135deg, #eef2ff 0%, #faf5ff 45%, #ecfeff 100%);
+    background-attachment: fixed;
+    padding: 30px 18px 70px;
+  }
+
+  .wrap { max-width: 1180px; margin: 0 auto; }
+
+  /* ---------------- Header ---------------- */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 18px; flex-wrap: wrap; margin-bottom: 26px;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .logo {
+    width: 54px; height: 54px; border-radius: 16px;
+    background: linear-gradient(135deg, var(--indigo), var(--pink));
+    display: grid; place-items: center;
+    font-family: var(--display); font-weight: 700; font-size: 26px; color: #fff;
+    box-shadow: 0 10px 24px -6px rgba(99,102,241,0.7);
+  }
+  .brand h1 {
+    font-family: var(--display); font-size: 24px; font-weight: 700;
+    letter-spacing: -0.5px;
+    background: linear-gradient(120deg, var(--indigo), var(--violet), var(--pink));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .brand p { color: var(--slate); font-size: 13px; font-weight: 500; margin-top: 2px; }
+
+  .topmeta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .author-box {
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .author-box label { font-size: 11px; color: var(--slate-light); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .author-box input {
+    font-family: var(--font); font-size: 13px; font-weight: 600; color: var(--ink);
+    border: 1px solid var(--line); background: var(--glass); padding: 7px 12px;
+    border-radius: 10px; outline: none; width: 170px;
+  }
+  .author-box input:focus { border-color: var(--indigo); }
+
+  .saved-pill {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--glass); border: 1px solid var(--line);
+    padding: 9px 14px; border-radius: 12px; font-size: 12.5px; font-weight: 600; color: var(--slate);
+    box-shadow: 0 6px 16px -8px rgba(30,27,75,0.25);
+  }
+  .saved-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--emerald); box-shadow: 0 0 0 4px rgba(16,185,129,0.18); }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+  .saved-dot.flash { animation: pulse 1s ease 2; }
+
+  /* ---------------- Card / panel ---------------- */
+  .card {
+    background: var(--glass);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,0.6);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px;
+    margin-bottom: 22px;
+  }
+  .card-title {
+    font-family: var(--display); font-size: 16px; font-weight: 600;
+    display: flex; align-items: center; gap: 9px; margin-bottom: 18px; color: var(--ink);
+  }
+  .card-title .ic {
+    width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center;
+    background: linear-gradient(135deg, var(--indigo), var(--violet)); color: #fff; font-size: 15px;
+  }
+  .card-title small { font-weight: 500; font-size: 12px; color: var(--slate-light); margin-left: auto; }
+
+  /* ---------------- Form ---------------- */
+  .form-grid { display: grid; grid-template-columns: 1fr 1.4fr 1fr auto; gap: 14px; align-items: end; }
+  @media (max-width: 820px) { .form-grid { grid-template-columns: 1fr; } }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--slate); margin-bottom: 6px; }
+  .field input {
+    width: 100%; font-family: var(--font); font-size: 14px; color: var(--ink);
+    padding: 12px 13px; border: 1.5px solid var(--line); border-radius: 12px;
+    background: rgba(255,255,255,0.85); outline: none; transition: all 0.15s ease;
+  }
+  .field input::placeholder { color: var(--slate-light); }
+  .field input:focus { border-color: var(--indigo); box-shadow: 0 0 0 4px rgba(99,102,241,0.14); }
+  .field input.bad { border-color: var(--rose); box-shadow: 0 0 0 4px rgba(244,63,94,0.14); }
+  .field .msg { font-size: 11.5px; color: var(--rose); margin-top: 5px; min-height: 15px; font-weight: 500; }
+
+  .btn {
+    font-family: var(--font); font-weight: 600; font-size: 14px; cursor: pointer;
+    padding: 12px 20px; border-radius: 12px; border: none; color: #fff;
+    background: linear-gradient(135deg, var(--indigo), var(--violet));
+    box-shadow: 0 10px 22px -8px rgba(99,102,241,0.75); transition: transform 0.1s ease, filter 0.15s ease;
+    white-space: nowrap;
+  }
+  .btn:hover { filter: brightness(1.06); }
+  .btn:active { transform: translateY(1px); }
+  .btn.ghost { background: rgba(255,255,255,0.8); color: var(--slate); border: 1.5px solid var(--line); box-shadow: none; }
+  .btn.pink { background: linear-gradient(135deg, var(--pink), var(--rose)); box-shadow: 0 10px 22px -8px rgba(236,72,153,0.7); }
+  .btn.cyan { background: linear-gradient(135deg, var(--cyan), #0891b2); box-shadow: 0 10px 22px -8px rgba(6,182,212,0.7); }
+  .btn.sm { padding: 8px 13px; font-size: 12.5px; border-radius: 10px; }
+
+  /* ---------------- Stats row ---------------- */
+  .stat-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 22px; }
+  @media (max-width: 900px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
+  .stat {
+    background: var(--glass-strong); border: 1px solid rgba(255,255,255,0.7);
+    border-radius: 16px; padding: 16px 18px; box-shadow: var(--shadow); position: relative; overflow: hidden;
+  }
+  .stat::before { content: ""; position: absolute; right: -20px; top: -20px; width: 70px; height: 70px; border-radius: 50%; opacity: 0.18; }
+  .stat.a::before { background: var(--indigo); }
+  .stat.b::before { background: var(--emerald); }
+  .stat.c::before { background: var(--rose); }
+  .stat.d::before { background: var(--amber); }
+  .stat.e::before { background: var(--cyan); }
+  .stat .k { font-size: 12px; font-weight: 600; color: var(--slate); text-transform: uppercase; letter-spacing: 0.4px; }
+  .stat .v { font-family: var(--display); font-size: 28px; font-weight: 700; margin-top: 6px; color: var(--ink); }
+  .stat .v small { font-size: 13px; font-weight: 500; color: var(--slate-light); }
+
+  /* ---------------- Charts ---------------- */
+  .charts { display: grid; grid-template-columns: 1.5fr 1fr; gap: 22px; }
+  @media (max-width: 900px) { .charts { grid-template-columns: 1fr; } }
+  .chart-box { height: 300px; }
+
+  /* ---------------- Controls ---------------- */
+  .controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .search {
+    position: relative; flex: 1; min-width: 220px;
+  }
+  .search input {
+    width: 100%; font-family: var(--font); font-size: 14px; color: var(--ink);
+    padding: 12px 14px 12px 40px; border: 1.5px solid var(--line); border-radius: 12px;
+    background: rgba(255,255,255,0.9); outline: none;
+  }
+  .search input:focus { border-color: var(--indigo); box-shadow: 0 0 0 4px rgba(99,102,241,0.14); }
+  .search .si { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--slate-light); font-size: 16px; }
+
+  /* ---------------- Table ---------------- */
+  .table-scroll { overflow-x: auto; border-radius: 14px; }
+  table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 640px; }
+  thead th {
+    text-align: left; font-size: 12px; font-weight: 700; color: var(--slate);
+    text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 14px;
+    background: rgba(99,102,241,0.08); border-bottom: 2px solid var(--line);
+    cursor: pointer; user-select: none; white-space: nowrap;
+  }
+  thead th.nosort { cursor: default; }
+  thead th .arrow { color: var(--indigo); margin-left: 5px; font-size: 11px; }
+  tbody td { padding: 13px 14px; font-size: 14px; border-bottom: 1px solid var(--line); color: var(--ink); vertical-align: middle; }
+  tbody tr { transition: background 0.12s ease; }
+  tbody tr:hover { background: rgba(99,102,241,0.05); }
+  tbody td .edit-in {
+    width: 100%; font-family: var(--font); font-size: 13.5px; padding: 7px 9px;
+    border: 1.5px solid var(--indigo); border-radius: 8px; outline: none; background: #fff;
+  }
+  tbody td .edit-in.bad { border-color: var(--rose); }
+
+  .grade { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; font-weight: 700; font-size: 14px; color: #fff; font-family: var(--display); }
+  .gA { background: var(--emerald); }
+  .gB { background: var(--cyan); }
+  .gC { background: var(--indigo); }
+  .gD { background: var(--amber); }
+  .gF { background: var(--rose); }
+
+  .tag { font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+  .tag.pass { background: rgba(16,185,129,0.14); color: #059669; }
+  .tag.fail { background: rgba(244,63,94,0.14); color: #e11d48; }
+
+  .row-actions { display: flex; gap: 8px; }
+  .icon-btn {
+    border: 1.5px solid var(--line); background: #fff; border-radius: 9px; padding: 6px 11px;
+    font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--slate); transition: all 0.12s ease;
+  }
+  .icon-btn:hover { border-color: var(--indigo); color: var(--indigo); }
+  .icon-btn.danger:hover { border-color: var(--rose); color: var(--rose); }
+  .icon-btn.save { background: var(--emerald); color: #fff; border-color: var(--emerald); }
+  .icon-btn.cancel { background: #fff; }
+
+  mark.hl { background: #fde047; color: #713f12; padding: 0 2px; border-radius: 3px; }
+
+  .empty { text-align: center; padding: 46px 16px; color: var(--slate-light); }
+  .empty .big { font-size: 44px; margin-bottom: 10px; }
+  .empty p { font-size: 15px; font-weight: 500; }
+
+  /* ---------------- Toasts ---------------- */
+  .toast-wrap { position: fixed; top: 22px; right: 22px; z-index: 1000; display: flex; flex-direction: column; gap: 12px; }
+  .toast {
+    display: flex; align-items: center; gap: 12px; min-width: 250px; max-width: 340px;
+    background: #fff; border-radius: 14px; padding: 13px 16px;
+    box-shadow: 0 16px 40px -10px rgba(15,23,42,0.4); border-left: 5px solid var(--indigo);
+    animation: slideIn 0.32s cubic-bezier(.18,.89,.32,1.28);
+  }
+  @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  .toast.out { animation: slideOut 0.3s ease forwards; }
+  @keyframes slideOut { to { transform: translateX(120%); opacity: 0; } }
+  .toast .ti { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; font-size: 16px; flex-shrink: 0; }
+  .toast.success { border-color: var(--emerald); } .toast.success .ti { background: rgba(16,185,129,0.15); }
+  .toast.error   { border-color: var(--rose); }    .toast.error .ti   { background: rgba(244,63,94,0.15); }
+  .toast.info    { border-color: var(--indigo); }  .toast.info .ti    { background: rgba(99,102,241,0.15); }
+  .toast.edit    { border-color: var(--amber); }   .toast.edit .ti    { background: rgba(245,158,11,0.15); }
+  .toast .tc .tt { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+  .toast .tc .td { font-size: 12.5px; color: var(--slate); margin-top: 1px; }
+
+  /* ---------------- Theory ---------------- */
+  .qa { border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; background: rgba(255,255,255,0.6); }
+  .qa .q { font-family: var(--display); font-weight: 600; font-size: 15px; color: var(--indigo); margin-bottom: 8px; }
+  .qa .a { font-size: 14px; line-height: 1.6; color: var(--slate); }
+  .qa .a code { background: rgba(99,102,241,0.12); color: var(--violet); padding: 1px 6px; border-radius: 5px; font-size: 13px; }
+
+  footer { text-align: center; color: var(--slate); font-size: 13px; margin-top: 20px; font-weight: 500; }
+
+  /* ---------------- Print ---------------- */
+  .print-only { display: none; }
+  @media print {
+    body { background: #fff; padding: 0; }
+    body * { visibility: hidden; }
+    .print-only, .print-only * { visibility: visible; }
+    .print-only { display: block; position: absolute; left: 0; top: 0; width: 100%; padding: 26px; }
+    .print-only h2 { font-family: var(--display); font-size: 22px; margin-bottom: 4px; }
+    .print-only .pmeta { font-size: 13px; color: #333; margin-bottom: 16px; }
+    .print-only table { width: 100%; border-collapse: collapse; min-width: 0; }
+    .print-only th, .print-only td { border: 1px solid #999; padding: 7px 9px; font-size: 12px; text-align: left; }
+    .print-only .psum { display: flex; gap: 22px; margin: 14px 0; font-size: 13px; flex-wrap: wrap; }
+    .print-only .psum b { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useMemo } = React;
+const {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend
+} = Recharts;
+
+/* =====================================================================
+   CONSTANTS + HELPERS
+   ===================================================================== */
+const PASS_MARK = 40;
+const GRADE_COLORS = { A: "#10b981", B: "#06b6d4", C: "#6366f1", D: "#f59e0b", F: "#f43f5e" };
+
+function gradeOf(m) {
+  if (m >= 90) return "A";
+  if (m >= 75) return "B";
+  if (m >= 60) return "C";
+  if (m >= 40) return "D";
+  return "F";
+}
+
+// Validate a single student's fields. `rolls` = existing rolls to check uniqueness against.
+function validateStudent({ roll, name, marks }, rolls) {
+  const e = {};
+  if (!String(roll).trim()) e.roll = "Required";
+  else if (!/^\d+$/.test(String(roll).trim())) e.roll = "Digits only";
+  else if (rolls.includes(String(roll).trim())) e.roll = "Roll already exists";
+
+  if (!String(name).trim()) e.name = "Required";
+  else if (!/^[A-Za-z .]{2,}$/.test(String(name).trim())) e.name = "Letters only, min 2";
+
+  const mStr = String(marks).trim();
+  if (mStr === "") e.marks = "Required";
+  else if (isNaN(Number(mStr))) e.marks = "Must be a number";
+  else if (Number(mStr) < 0 || Number(mStr) > 100) e.marks = "0–100 only";
+  return e;
+}
+
+// Highlight first match of query inside text (for search results).
+function Highlight({ text, query }) {
+  const str = String(text);
+  if (!query) return <>{str}</>;
+  const i = str.toLowerCase().indexOf(query.toLowerCase());
+  if (i === -1) return <>{str}</>;
+  return (
+    <>{str.slice(0, i)}<mark className="hl">{str.slice(i, i + query.length)}</mark>{str.slice(i + query.length)}</>
+  );
+}
+
+/* =====================================================================
+   CUSTOM HOOK: useLocalStorage  (state persisted across refresh)
+   ===================================================================== */
+function useLocalStorage(key, initial) {
+  const [value, setValue] = useState(() => {
+    try {
+      const raw = window.localStorage.getItem(key);
+      return raw != null ? JSON.parse(raw) : initial;
+    } catch { return initial; }
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem(key, JSON.stringify(value)); } catch {}
+  }, [key, value]);
+  return [value, setValue];
+}
+
+/* =====================================================================
+   TOASTS
+   ===================================================================== */
+function ToastStack({ toasts }) {
+  const ICONS = { success: "✅", error: "❌", info: "🗑️", edit: "✏️" };
+  return (
+    <div className="toast-wrap">
+      {toasts.map(t => (
+        <div key={t.id} className={"toast " + t.type}>
+          <div className="ti">{ICONS[t.type]}</div>
+          <div className="tc">
+            <div className="tt">{t.title}</div>
+            {t.desc && <div className="td">{t.desc}</div>}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* =====================================================================
+   FORM
+   ===================================================================== */
+function StudentForm({ onAdd, rolls }) {
+  const [form, setForm] = useState({ roll: "", name: "", marks: "" });
+  const [err, setErr] = useState({});
+
+  function set(k, v) { setForm(f => ({ ...f, [k]: v })); }
+
+  function submit(e) {
+    e.preventDefault();
+    const errs = validateStudent(form, rolls);
+    setErr(errs);
+    if (Object.keys(errs).length) { onAdd(null, errs); return; }
+    onAdd({ id: Date.now(), roll: form.roll.trim(), name: form.name.trim(), marks: Number(form.marks) });
+    setForm({ roll: "", name: "", marks: "" });
+    setErr({});
+  }
+
+  return (
+    <form className="card" onSubmit={submit} noValidate>
+      <div className="card-title"><span className="ic">＋</span> Enrol New Student</div>
+      <div className="form-grid">
+        <div className="field">
+          <label>Roll Number</label>
+          <input className={err.roll ? "bad" : ""} value={form.roll}
+            onChange={e => set("roll", e.target.value)} placeholder="101" />
+          <div className="msg">{err.roll || ""}</div>
+        </div>
+        <div className="field">
+          <label>Full Name</label>
+          <input className={err.name ? "bad" : ""} value={form.name}
+            onChange={e => set("name", e.target.value)} placeholder="Ada Lovelace" />
+          <div className="msg">{err.name || ""}</div>
+        </div>
+        <div className="field">
+          <label>Marks (/100)</label>
+          <input className={err.marks ? "bad" : ""} value={form.marks}
+            onChange={e => set("marks", e.target.value)} placeholder="88" />
+          <div className="msg">{err.marks || ""}</div>
+        </div>
+        <div className="field">
+          <label>&nbsp;</label>
+          <button type="submit" className="btn">Add Student</button>
+          <div className="msg"></div>
+        </div>
+      </div>
+    </form>
+  );
+}
+
+/* =====================================================================
+   DASHBOARD (stats + charts)
+   ===================================================================== */
+function Dashboard({ students }) {
+  const total = students.length;
+  const marksArr = students.map(s => s.marks);
+  const avg = total ? (marksArr.reduce((a, b) => a + b, 0) / total).toFixed(1) : "0";
+  const passCount = students.filter(s => s.marks >= PASS_MARK).length;
+  const passRatio = total ? Math.round((passCount / total) * 100) : 0;
+
+  const top = total ? students.reduce((a, b) => (b.marks > a.marks ? b : a)) : null;
+  const low = total ? students.reduce((a, b) => (b.marks < a.marks ? b : a)) : null;
+
+  const barData = students.map(s => ({ name: s.name.split(" ")[0], marks: s.marks }));
+
+  const dist = { A: 0, B: 0, C: 0, D: 0, F: 0 };
+  students.forEach(s => { dist[gradeOf(s.marks)]++; });
+  const donutData = Object.keys(dist)
+    .map(g => ({ name: "Grade " + g, key: g, value: dist[g] }))
+    .filter(d => d.value > 0);
+
+  return (
+    <>
+      <div className="stat-row">
+        <div className="stat a"><div className="k">Total Students</div><div className="v">{total}</div></div>
+        <div className="stat b"><div className="k">Class Average</div><div className="v">{avg}<small>/100</small></div></div>
+        <div className="stat e"><div className="k">Pass Ratio</div><div className="v">{passRatio}<small>%</small></div></div>
+        <div className="stat d"><div className="k">Top Scorer</div><div className="v" style={{fontSize:"17px"}}>{top ? top.name.split(" ")[0] : "—"}<small> {top ? top.marks : ""}</small></div></div>
+        <div className="stat c"><div className="k">Lowest Scorer</div><div className="v" style={{fontSize:"17px"}}>{low ? low.name.split(" ")[0] : "—"}<small> {low ? low.marks : ""}</small></div></div>
+      </div>
+
+      <div className="charts">
+        <div className="card" style={{ marginBottom: 0 }}>
+          <div className="card-title"><span className="ic">📊</span> Marks by Student <small>live</small></div>
+          <div className="chart-box">
+            {total === 0 ? <Placeholder /> : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={barData} margin={{ top: 10, right: 10, left: -18, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#8b5cf6" />
+                      <stop offset="100%" stopColor="#6366f1" />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.25)" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#475569" }} />
+                  <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: "#475569" }} />
+                  <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0", fontSize: 13 }} />
+                  <Bar dataKey="marks" fill="url(#barGrad)" radius={[8, 8, 0, 0]} maxBarSize={48} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
+        <div className="card" style={{ marginBottom: 0 }}>
+          <div className="card-title"><span className="ic">🍩</span> Grade Mix</div>
+          <div className="chart-box">
+            {total === 0 ? <Placeholder /> : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={donutData} dataKey="value" nameKey="name" cx="50%" cy="50%"
+                       innerRadius={58} outerRadius={92} paddingAngle={3}>
+                    {donutData.map(d => <Cell key={d.key} fill={GRADE_COLORS[d.key]} />)}
+                  </Pie>
+                  <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0", fontSize: 13 }} />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function Placeholder() {
+  return <div className="empty" style={{ padding: "70px 0" }}><div className="big">📈</div><p>No data yet — add a student to see analytics.</p></div>;
+}
+
+/* =====================================================================
+   TABLE  (search highlight + sort + inline edit + delete)
+   ===================================================================== */
+function StudentTable({ students, query, setQuery, sortKey, sortDir, onSort,
+                        editingId, startEdit, cancelEdit, saveEdit, onDelete }) {
+
+  const headers = [
+    { key: "roll", label: "Roll" },
+    { key: "name", label: "Name" },
+    { key: "marks", label: "Marks" },
+    { key: "grade", label: "Grade", sortable: false },
+    { key: "result", label: "Result", sortable: false },
+    { key: "action", label: "Actions", sortable: false },
+  ];
+
+  return (
+    <div className="card">
+      <div className="card-title"><span className="ic">🎓</span> Student Records <small>{students.length} shown</small></div>
+
+      <div className="controls" style={{ marginBottom: 16 }}>
+        <div className="search">
+          <span className="si">🔍</span>
+          <input placeholder="Search by roll, name or marks…" value={query}
+                 onChange={e => setQuery(e.target.value)} />
+        </div>
+      </div>
+
+      {students.length === 0 ? (
+        <div className="empty"><div className="big">🗂️</div><p>{query ? "No students match your search." : "No students yet — enrol one above."}</p></div>
+      ) : (
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                {headers.map(h => (
+                  <th key={h.key}
+                      className={h.sortable === false ? "nosort" : ""}
+                      onClick={() => h.sortable === false ? null : onSort(h.key)}>
+                    {h.label}
+                    {sortKey === h.key && h.sortable !== false &&
+                      <span className="arrow">{sortDir === "asc" ? "▲" : "▼"}</span>}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {students.map(s => (
+                <StudentRow key={s.id} s={s} query={query}
+                  editing={editingId === s.id}
+                  startEdit={startEdit} cancelEdit={cancelEdit} saveEdit={saveEdit} onDelete={onDelete} />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StudentRow({ s, query, editing, startEdit, cancelEdit, saveEdit, onDelete }) {
+  const [draft, setDraft] = useState({ roll: s.roll, name: s.name, marks: String(s.marks) });
+  const [err, setErr] = useState({});
+
+  // Re-sync draft each time we enter edit mode.
+  useEffect(() => {
+    if (editing) { setDraft({ roll: s.roll, name: s.name, marks: String(s.marks) }); setErr({}); }
+  }, [editing]);
+
+  function save() {
+    const ok = saveEdit(s.id, draft);   // returns errors object (empty if success)
+    if (ok && Object.keys(ok).length) setErr(ok);
+  }
+
+  if (editing) {
+    return (
+      <tr>
+        <td><input className={"edit-in " + (err.roll ? "bad" : "")} value={draft.roll}
+              onChange={e => setDraft(d => ({ ...d, roll: e.target.value }))} /></td>
+        <td><input className={"edit-in " + (err.name ? "bad" : "")} value={draft.name}
+              onChange={e => setDraft(d => ({ ...d, name: e.target.value }))} /></td>
+        <td><input className={"edit-in " + (err.marks ? "bad" : "")} value={draft.marks}
+              onChange={e => setDraft(d => ({ ...d, marks: e.target.value }))} /></td>
+        <td colSpan="2" style={{ fontSize: 12, color: "var(--rose)" }}>
+          {Object.values(err)[0] || "Editing…"}
+        </td>
+        <td>
+          <div className="row-actions">
+            <button className="icon-btn save" onClick={save}>Save</button>
+            <button className="icon-btn cancel" onClick={cancelEdit}>Cancel</button>
+          </div>
+        </td>
+      </tr>
+    );
+  }
+
+  const g = gradeOf(s.marks);
+  const passed = s.marks >= PASS_MARK;
+  return (
+    <tr>
+      <td><Highlight text={s.roll} query={query} /></td>
+      <td><Highlight text={s.name} query={query} /></td>
+      <td><Highlight text={s.marks} query={query} /></td>
+      <td><span className={"grade g" + g}>{g}</span></td>
+      <td><span className={"tag " + (passed ? "pass" : "fail")}>{passed ? "PASS" : "FAIL"}</span></td>
+      <td>
+        <div className="row-actions">
+          <button className="icon-btn" onClick={() => startEdit(s.id)}>✏️ Edit</button>
+          <button className="icon-btn danger" onClick={() => onDelete(s.id)}>🗑 Delete</button>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+/* =====================================================================
+   THEORY
+   ===================================================================== */
+function Theory() {
+  const items = [
+    {
+      q: "Q1. Why did persisting data with localStorage require a custom hook instead of plain useState?",
+      a: (<>Plain <code>useState</code> resets on every refresh. A naive fix — reading <code>localStorage</code> on
+        each render — re-parses JSON constantly and can desync from React's state. The clean solution is a
+        <code> useLocalStorage</code> hook that lazily initialises state from storage <em>once</em>
+        (<code>useState(() =&gt; JSON.parse(...))</code>) and writes back inside a <code>useEffect</code> whenever the
+        value changes. The tricky part was guarding <code>JSON.parse</code> with try/catch so corrupt or empty
+        storage doesn't crash the whole app on load.</>)
+    },
+    {
+      q: "Q2. What made real-time charts that update on every add/delete difficult?",
+      a: (<>Charts must re-derive their data from the same source of truth as the table, or the two drift apart.
+        Recomputing bar and donut datasets inside render (from the <code>students</code> array) keeps them
+        perfectly in sync, but empty data crashes most chart libraries. The fix was <strong>conditional rendering</strong>:
+        show a placeholder when there are zero students and only mount the <code>ResponsiveContainer</code> once data
+        exists — so charts animate in correctly and never render against an empty array.</>)
+    },
+    {
+      q: "Q3. Why was inline row editing harder than a normal add form, and how was it handled?",
+      a: (<>An add form has one set of inputs; inline editing needs editable state <em>per row</em> without losing the
+        original until the user saves. Storing a <code>draft</code> in each <code>StudentRow</code> and re-syncing it via
+        <code> useEffect</code> on entering edit mode keeps edits local. Validation also had to skip the row's <em>own</em>
+        roll number when checking uniqueness — otherwise saving an unchanged roll would wrongly report a duplicate.</>)
+    },
+  ];
+  return (
+    <div className="card">
+      <div className="card-title"><span className="ic">★</span> Theory — Build Challenges &amp; Answers</div>
+      {items.map((it, i) => (
+        <div className="qa" key={i}>
+          <div className="q">{it.q}</div>
+          <div className="a">{it.a}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* =====================================================================
+   PRINT REPORT (hidden on screen, visible only when printing)
+   ===================================================================== */
+function PrintReport({ students, author }) {
+  const total = students.length;
+  const avg = total ? (students.reduce((a, s) => a + s.marks, 0) / total).toFixed(1) : "0";
+  const passCount = students.filter(s => s.marks >= PASS_MARK).length;
+  const date = new Date().toLocaleString();
+  return (
+    <div className="print-only">
+      <h2>Student Management System — Class Report</h2>
+      <div className="pmeta">Prepared by: <b>{author || "—"}</b> &nbsp;•&nbsp; Generated: {date}</div>
+      <div className="psum">
+        <div>Total Students: <b>{total}</b></div>
+        <div>Class Average: <b>{avg}</b></div>
+        <div>Passed: <b>{passCount}</b></div>
+        <div>Failed: <b>{total - passCount}</b></div>
+      </div>
+      <table>
+        <thead><tr><th>#</th><th>Roll</th><th>Name</th><th>Marks</th><th>Grade</th><th>Result</th></tr></thead>
+        <tbody>
+          {students.map((s, i) => (
+            <tr key={s.id}>
+              <td>{i + 1}</td><td>{s.roll}</td><td>{s.name}</td><td>{s.marks}</td>
+              <td>{gradeOf(s.marks)}</td><td>{s.marks >= PASS_MARK ? "PASS" : "FAIL"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/* =====================================================================
+   ROOT APP
+   ===================================================================== */
+const SEED = [
+  { id: 1, roll: "101", name: "Ada Lovelace", marks: 95 },
+  { id: 2, roll: "102", name: "Alan Turing", marks: 82 },
+  { id: 3, roll: "103", name: "Grace Hopper", marks: 67 },
+  { id: 4, roll: "104", name: "Linus Torvalds", marks: 48 },
+  { id: 5, roll: "105", name: "Margaret Hamilton", marks: 33 },
+];
+
+function App() {
+  const [students, setStudents] = useLocalStorage("sms.students.v2", SEED);
+  const [author, setAuthor] = useLocalStorage("sms.author.v2", "Class Teacher");
+
+  const [query, setQuery] = useState("");
+  const [sortKey, setSortKey] = useState("roll");
+  const [sortDir, setSortDir] = useState("asc");
+  const [editingId, setEditingId] = useState(null);
+
+  const [toasts, setToasts] = useState([]);
+  const [lastSaved, setLastSaved] = useState(Date.now());
+  const [now, setNow] = useState(Date.now());
+  const firstRun = useRef(true);
+
+  // toast helper
+  function toast(type, title, desc) {
+    const id = Date.now() + Math.random();
+    setToasts(t => [...t, { id, type, title, desc }]);
+    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3200);
+  }
+
+  // "last saved" ticker
+  useEffect(() => {
+    const i = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(i);
+  }, []);
+  // mark saved whenever students change (skip the very first mount)
+  useEffect(() => {
+    if (firstRun.current) { firstRun.current = false; return; }
+    setLastSaved(Date.now());
+  }, [students]);
+
+  const secondsAgo = Math.max(0, Math.floor((now - lastSaved) / 1000));
+  const savedLabel = secondsAgo < 2 ? "just now" : secondsAgo + "s ago";
+
+  const rolls = students.map(s => s.roll);
+
+  /* ---- CRUD ---- */
+  function addStudent(student, errs) {
+    if (!student) { toast("error", "Validation failed", Object.values(errs)[0]); return; }
+    setStudents(prev => [...prev, student]);
+    toast("success", "Student added", student.name + " enrolled");
+  }
+  function deleteStudent(id) {
+    const victim = students.find(s => s.id === id);
+    setStudents(prev => prev.filter(s => s.id !== id));
+    if (editingId === id) setEditingId(null);
+    toast("info", "Student deleted", victim ? victim.name + " removed" : "");
+  }
+  function startEdit(id) { setEditingId(id); }
+  function cancelEdit() { setEditingId(null); }
+  function saveEdit(id, draft) {
+    const otherRolls = students.filter(s => s.id !== id).map(s => s.roll);
+    const errs = validateStudent(draft, otherRolls);
+    if (Object.keys(errs).length) { toast("error", "Could not save", Object.values(errs)[0]); return errs; }
+    setStudents(prev => prev.map(s => s.id === id
+      ? { ...s, roll: draft.roll.trim(), name: draft.name.trim(), marks: Number(draft.marks) }
+      : s));
+    setEditingId(null);
+    toast("edit", "Changes saved", draft.name.trim() + " updated");
+    return {};
+  }
+
+  /* ---- sort handler ---- */
+  function onSort(key) {
+    if (sortKey === key) setSortDir(d => (d === "asc" ? "desc" : "asc"));
+    else { setSortKey(key); setSortDir("asc"); }
+  }
+
+  /* ---- derived: filtered + sorted list ---- */
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    let list = students.filter(s =>
+      !q ||
+      s.roll.toLowerCase().includes(q) ||
+      s.name.toLowerCase().includes(q) ||
+      String(s.marks).includes(q)
+    );
+    list = [...list].sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if (sortKey === "marks") { av = a.marks; bv = b.marks; }
+      else if (sortKey === "roll") { av = Number(a.roll); bv = Number(b.roll); }
+      else { av = String(av).toLowerCase(); bv = String(bv).toLowerCase(); }
+      if (av < bv) return sortDir === "asc" ? -1 : 1;
+      if (av > bv) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+    return list;
+  }, [students, query, sortKey, sortDir]);
+
+  /* ---- export CSV ---- */
+  function exportCSV() {
+    if (!students.length) { toast("error", "Nothing to export", "Add students first"); return; }
+    const header = ["Roll", "Name", "Marks", "Grade", "Result"];
+    const rows = students.map(s => [
+      s.roll, s.name, s.marks, gradeOf(s.marks), s.marks >= PASS_MARK ? "PASS" : "FAIL"
+    ]);
+    const csv = [header, ...rows]
+      .map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "students_report.csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast("success", "CSV exported", students.length + " records downloaded");
+  }
+
+  function printReport() { window.print(); }
+
+  return (
+    <div className="wrap">
+      <ToastStack toasts={toasts} />
+
+      <div className="topbar">
+        <div className="brand">
+          <div className="logo">S</div>
+          <div>
+            <h1>Student Management System</h1>
+            <p>Pro Analytics Dashboard · React + Recharts</p>
+          </div>
+        </div>
+        <div className="topmeta">
+          <div className="author-box">
+            <label>Report prepared by</label>
+            <input value={author} onChange={e => setAuthor(e.target.value)} placeholder="Your name" />
+          </div>
+          <div className="saved-pill">
+            <span className={"saved-dot" + (secondsAgo < 2 ? " flash" : "")}></span>
+            Last saved: {savedLabel}
+          </div>
+        </div>
+      </div>
+
+      <StudentForm onAdd={addStudent} rolls={rolls} />
+
+      <Dashboard students={students} />
+
+      <div style={{ height: 22 }} />
+
+      <div className="card" style={{ marginBottom: 22 }}>
+        <div className="controls">
+          <div style={{ fontWeight: 600, color: "var(--slate)", fontSize: 14 }}>Quick actions:</div>
+          <button className="btn cyan sm" onClick={exportCSV}>📥 Export CSV</button>
+          <button className="btn pink sm" onClick={printReport}>🖨 Print Report</button>
+          <span style={{ marginLeft: "auto", fontSize: 12.5, color: "var(--slate-light)" }}>
+            Grades: A ≥90 · B ≥75 · C ≥60 · D ≥40 · F &lt;40
+          </span>
+        </div>
+      </div>
+
+      <StudentTable
+        students={visible} query={query} setQuery={setQuery}
+        sortKey={sortKey} sortDir={sortDir} onSort={onSort}
+        editingId={editingId} startEdit={startEdit} cancelEdit={cancelEdit}
+        saveEdit={saveEdit} onDelete={deleteStudent}
+      />
+
+      <Theory />
+
+      <footer>Built with React · useState · useEffect · custom hooks · props · Recharts — © {new Date().getFullYear()}</footer>
+
+      <PrintReport students={students} author={author} />
+    </div>
+  );
+}
+
+if (!window.Recharts || !window.React) {
+  document.getElementById("root").innerHTML =
+    '<div style="max-width:560px;margin:80px auto;font-family:Inter,sans-serif;background:#fff;padding:28px;border-radius:16px;box-shadow:0 18px 50px -12px rgba(30,27,75,.35)">' +
+    '<h2 style="margin-bottom:8px">⚠️ Libraries failed to load</h2>' +
+    '<p style="color:#475569;line-height:1.6">A CDN script (React/Recharts) did not load. Check your internet connection and refresh. If you are offline, connect once so the libraries can download.</p></div>';
+} else {
+  ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+}
+</script>
+</body>
+</html>
